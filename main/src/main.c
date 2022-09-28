@@ -2,10 +2,63 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "wifi_cmds.h"
+#include "publisher.h"
 #include "can.h"
 #include "nvs_flash.h"
+#include <time.h>
 #include "esp_log.h"
 
+#define DEBUG_SPOOF_CAN
+
+void publish_task(void* pvParameters)
+{   
+    while(true)
+    {
+        publish_datagram();
+        vTaskDelay(50 / portTICK_PERIOD_MS); //2Hz publish rate
+    }
+}
+
+void can_task(void* pvParameters)
+{
+    //Initalize CAN
+    can_init();
+    while(true)
+    {
+        //Blocking call to just lazily recieve CAN messages
+        sunstream_can_msg_t msg = can_receive();
+        append_can_msg_to_buffer(msg);
+    }
+}
+
+#ifdef DEBUG_SPOOF_CAN
+void spoof_can_task(void* pvParameters)
+{
+    //ESP_LOGI("main", "Datagram message size: %d", sizeof(sunstream_datagram_t));
+    while(true)
+    {
+        sunstream_can_msg_t msg;
+        struct tm ts = {0};
+        //Get the epoch time
+        time_t epoch_ts = mktime(&ts);
+        msg.timestamp = epoch_ts;
+        msg.id = 0x123;
+        msg.data[0] = 0x01;
+        msg.data[1] = 0x02;
+        msg.data[2] = 0x03;
+        msg.data[3] = 0x04;
+        msg.data[4] = 0x05;
+        msg.data[5] = 0x06;
+        msg.data[6] = 0x07;
+        msg.data[7] = 0x08;
+        msg.len = 8;
+        //append_can_msg_to_buffer(msg);
+        char msg2[] = "Hello World";
+        ESP_LOGI("main", "Sent with status: %d", send_udp_packet(msg2, sizeof(msg2)));
+        vTaskDelay(1 / portTICK_PERIOD_MS);
+    }
+}
+#endif
 
 
 void app_main(void)
@@ -29,12 +82,14 @@ void app_main(void)
         ESP_LOGI("main", "Wifi initialized");
     }
 
+    xTaskCreate(&publish_task, "publish_task", 4096, NULL, 1, NULL);
+    #ifndef DEBUG_SPOOF_CAN
+    xTaskCreate(&can_task, "can_task", 4096, NULL, 0, NULL);
+    #else
     //Initalize CAN
     can_init();
-
-    while(true)
-    {
-    
-    }
-
+    xTaskCreate(&spoof_can_task, "spoof_can_task", 4096, NULL, 0, NULL);
+    xTaskCreate(&spoof_can_task, "spoof_can_task", 4096, NULL, 0, NULL);
+    xTaskCreate(&spoof_can_task, "spoof_can_task", 4096, NULL, 0, NULL);
+    #endif
 }
