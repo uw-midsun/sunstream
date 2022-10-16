@@ -3,7 +3,8 @@
 
 #include <stdint.h>
 
-typedef struct {
+typedef struct __attribute__((packed)) 
+{
     int64_t timestamp;
     uint32_t id;
     uint8_t len;
