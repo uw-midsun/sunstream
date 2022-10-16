@@ -18,5 +18,5 @@ sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 sock.settimeout(2)
 
 while True:     
-  packet = sock.recv(2)
+  packet = sock.recv(13443)
   print(packet)

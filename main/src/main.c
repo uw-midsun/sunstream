@@ -52,9 +52,7 @@ void spoof_can_task(void* pvParameters)
         msg.data[6] = 0x07;
         msg.data[7] = 0x08;
         msg.len = 8;
-        //append_can_msg_to_buffer(msg);
-        char msg2[] = "Hello World";
-        ESP_LOGI("main", "Sent with status: %d", send_udp_packet(msg2, sizeof(msg2)));
+        append_can_msg_to_buffer(msg);
         vTaskDelay(1 / portTICK_PERIOD_MS);
     }
 }
@@ -83,6 +81,7 @@ void app_main(void)
     }
 
     xTaskCreate(&publish_task, "publish_task", 4096, NULL, 1, NULL);
+    ESP_LOGI("main", "Publish task created, size of datagram: %d", sizeof(sunstream_datagram_t));
     #ifndef DEBUG_SPOOF_CAN
     xTaskCreate(&can_task, "can_task", 4096, NULL, 0, NULL);
     #else
