@@ -5,8 +5,9 @@
 #include "publisher.h"
 #include "can.h"
 #include "nvs_flash.h"
-#include <time.h>
+#include <sys/time.h>
 #include "esp_log.h"
+#include <stdlib.h>
 
 #define DEBUG_SPOOF_CAN
 
@@ -34,27 +35,41 @@ void can_task(void* pvParameters)
 #ifdef DEBUG_SPOOF_CAN
 void spoof_can_task(void* pvParameters)
 {
-    //ESP_LOGI("main", "Datagram message size: %d", sizeof(sunstream_datagram_t));
+    //Seed random number generator
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    srand(tv.tv_usec);
     while(true)
     {
         sunstream_can_msg_t msg;
-        struct tm ts = {0};
         //Get the epoch time
-        time_t epoch_ts = mktime(&ts);
-        msg.timestamp = epoch_ts;
-        msg.id = 0x123;
-        msg.data[0] = 0x01;
-        msg.data[1] = 0x02;
-        msg.data[2] = 0x03;
-        msg.data[3] = 0x04;
-        msg.data[4] = 0x05;
-        msg.data[5] = 0x06;
-        msg.data[6] = 0x07;
-        msg.data[7] = 0x08;
-        msg.len = 8;
+        struct timeval tv_now;
+        gettimeofday(&tv_now, NULL);
+        int64_t time_us = (int64_t)tv_now.tv_sec * 1000000L + (int64_t)tv_now.tv_usec;
+        msg.timestamp = time_us;
+        // Generate a random CAN ID
+        msg.id = rand() % 0x7FF;
+        // Generate random length capping at 8
+        msg.len = rand() % 8;
+        //Generate random data and put into the message
+        for(int i = 0; i < msg.len; i++)
+        {
+            msg.data[i] = rand() % 256;
+        }
         append_can_msg_to_buffer(msg);
-        vTaskDelay(1 / portTICK_PERIOD_MS);
+        vTaskDelay(10 / portTICK_PERIOD_MS);
+        // Print out in hex the spoofed can message, data and timestamp
+        /*
+        uint8_t* data = (uint8_t*)&msg;
+        printf("CAN Message: ");
+        for(int i = 0; i < sizeof(msg); i++)
+        {
+            printf("%02X ", data[i]);
+        }
+        printf("\n");
+        */
     }
+
 }
 #endif
 
@@ -81,14 +96,13 @@ void app_main(void)
     }
 
     xTaskCreate(&publish_task, "publish_task", 4096, NULL, 1, NULL);
-    ESP_LOGI("main", "Publish task created, size of datagram: %d", sizeof(sunstream_datagram_t));
+    ESP_LOGI("main", "Publish task created, size of datagram: %d, size of datagram header: %d, size of can message: %d", 
+    sizeof(sunstream_datagram_t), sizeof(sunstream_datagram_header_t), sizeof(sunstream_can_msg_t));
     #ifndef DEBUG_SPOOF_CAN
     xTaskCreate(&can_task, "can_task", 4096, NULL, 0, NULL);
     #else
     //Initalize CAN
     can_init();
-    xTaskCreate(&spoof_can_task, "spoof_can_task", 4096, NULL, 0, NULL);
-    xTaskCreate(&spoof_can_task, "spoof_can_task", 4096, NULL, 0, NULL);
     xTaskCreate(&spoof_can_task, "spoof_can_task", 4096, NULL, 0, NULL);
     #endif
 }

@@ -5,6 +5,7 @@
 
 typedef struct __attribute__((packed)) 
 {
+    uint8_t magic_number; // Aid in alignment
     int64_t timestamp;
     uint32_t id;
     uint8_t len;
