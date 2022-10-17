@@ -12,6 +12,6 @@ datagram_header_struct = struct.Struct('<BH')
 # 4 byte: can id
 # 1 byte: can data length
 # 8 bytes: can data
-can_message_struct = struct.Struct('<BqIB8s')
+can_message_struct = struct.Struct('<BQIB8s')
 
 can_messages_per_datagram = (10 * 5)

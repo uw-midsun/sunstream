@@ -19,5 +19,6 @@ void publish_datagram(void)
     if(datagram_buffer.header.msg_count > 0)
     {
         send_udp_packet((uint8_t*)&datagram_buffer, sizeof(datagram_buffer));
+        datagram_buffer.header.msg_count = 0;
     }
 }
