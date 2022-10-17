@@ -5,8 +5,8 @@
 
 //Wifi configs
 
-#define WIFI_SSID "test"
-#define WIFI_KEY "test"
+#define WIFI_SSID "YellowCottage"
+#define WIFI_KEY "stalker :p"
 #define WIFI_MAX_RETRY 3U
 
 #define MULTICAST_IPV4_ADDR "224.1.1.1"
@@ -17,8 +17,9 @@
 #define CAN_RX_GPIO (GPIO_NUM_22)
 
 // Buffer configs
-#define MAX_CAN_MSGS_PER_DATAGRAM (10UL * 64UL)
+#define MAX_CAN_MSGS_PER_DATAGRAM (10UL * 5UL)
 
 #define DATAGRAM_SOF (0xAAU)
+#define CAN_SOF (0xBBU)
 
 #endif
