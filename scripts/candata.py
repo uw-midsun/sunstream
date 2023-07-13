@@ -6,7 +6,7 @@ cnx_string = 'mysql+mysqlconnector://root:@localhost:3306/midnight_sun'
 
 engine = create_engine(cnx_string)
 
-# sample can msgs
+# sample can msgs from https://uwmidsun.atlassian.net/wiki/spaces/ELEC/pages/3157950471/Meeting+Notes+-+Strategy+x+FW
 msg1 = {
   "id": 0,
   "source": "BMS_CARRIER",
