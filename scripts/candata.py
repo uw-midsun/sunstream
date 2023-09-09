@@ -93,18 +93,3 @@ def can_data_to_mysql(msgs):
     df.to_sql('can_data', con=engine, if_exists='append', index=False)
 
 engine.dispose()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
