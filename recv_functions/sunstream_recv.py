@@ -6,6 +6,7 @@ import cantools # DBC decoding
 import click # Command line interface
 from sunstream_util import print_in_hex_only
 import time
+from ..scripts.candata import non_can_data_to_mysql, can_data_to_mysql
 
 class sunstream_receiver:
     def __init__(self, mcast_grp: str, mcast_port: int, msg_callback, dbc_file: str, datagram_socket_timeout: int=2):
@@ -97,6 +98,9 @@ class sunstream_decoder:
 def dump_test(msg: can.Message):
     # Print out the can message
     click.secho(msg, fg="blue")
+    # CAN msg to SQL db
+    non_can_data_to_mysql(msg)
+    can_data_to_mysql(msg)
     pass
 
 @click.command()
